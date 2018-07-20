@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-3.2.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd">
+        
+        <!-- ftp clinet config -->
+        
+     <bean name="ftpClientTools_1" class="com.voole.ad.ftp.FTPClientTools">
+		<property name="host" value="${ftp1.host}" />
+		<property name="port" value="${ftp1.port}" /> 
+		<property name="username" value="${ftp1.username}" /> 
+		<property name="password" value="${ftp1.password}" /> 
+		<property name="remotePath" value="${ftp1.remotePath}" /> 
+		<property name="localPath" value="${ftp1.localPath}" /> 
+		<property name="remoteBackupPath" value="${ftp1.remoteBackupPath}" /> 
+		<property name="bufSize" value="${ftp1.bufSize}" /> 
+	</bean>
+	
+	<bean name="ftpClientTools_2" class="com.voole.ad.ftp.FTPClientTools">
+		<property name="host" value="${ftp2.host}" />
+		<property name="port" value="${ftp2.port}" /> 
+		<property name="username" value="${ftp2.username}" /> 
+		<property name="password" value="${ftp2.password}" /> 
+		<property name="remotePath" value="${ftp2.remotePath}" /> 
+		<property name="localPath" value="${ftp2.localPath}" /> 
+		<property name="remoteBackupPath" value="${ftp2.remoteBackupPath}" /> 
+		<property name="bufSize" value="${ftp2.bufSize}" /> 
+	</bean>
+	
+	<bean name="ftpClientTools_3" class="com.voole.ad.ftp.FTPClientTools">
+		<property name="host" value="${ftp3.host}" />
+		<property name="port" value="${ftp3.port}" /> 
+		<property name="username" value="${ftp3.username}" /> 
+		<property name="password" value="${ftp3.password}" /> 
+		<property name="remotePath" value="${ftp3.remotePath}" /> 
+		<property name="localPath" value="${ftp3.localPath}" /> 
+		<property name="remoteBackupPath" value="${ftp3.remoteBackupPath}" /> 
+		<property name="bufSize" value="${ftp3.bufSize}" /> 
+	</bean>
+	
+	<bean name="ftpClientTools_4" class="com.voole.ad.ftp.FTPClientTools">
+		<property name="host" value="${ftp4.host}" />
+		<property name="port" value="${ftp4.port}" /> 
+		<property name="username" value="${ftp4.username}" /> 
+		<property name="password" value="${ftp4.password}" /> 
+		<property name="remotePath" value="${ftp4.remotePath}" /> 
+		<property name="localPath" value="${ftp4.localPath}" /> 
+		<property name="remoteBackupPath" value="${ftp4.remoteBackupPath}" /> 
+		<property name="bufSize" value="${ftp4.bufSize}" /> 
+	</bean>
+	
+	<bean id="ftpToolsMap" class="java.util.HashMap">
+		<constructor-arg>
+			<map>
+				<!-- 注：key配置为 ftphost -->
+				<entry key="${ftp1.host}" value-ref="ftpClientTools_1" />
+				<entry key="${ftp2.host}" value-ref="ftpClientTools_2" />
+				<entry key="${ftp3.host}" value-ref="ftpClientTools_3" />
+				<entry key="${ftp4.host}" value-ref="ftpClientTools_4" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+	 <!-- ftp任务工具类 -->
+	<bean name="ftpClientService" class="com.voole.ad.ftp.FTPClientService">
+		 <property name="ftpClientToolsMap" ref="ftpToolsMap" />
+	</bean>
+
+</beans>

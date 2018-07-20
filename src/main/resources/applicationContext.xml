@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:cache="http://www.springframework.org/schema/cache"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/task 
+	http://www.springframework.org/schema/task/spring-task-4.1.xsd
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+    http://www.springframework.org/schema/aop 
+    http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context-4.1.xsd
+    http://www.springframework.org/schema/util 
+    http://www.springframework.org/schema/util/spring-util-4.1.xsd
+    http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache-4.1.xsd">
+
+    <!-- 缓存定期更新任务 -->
+    <import resource="FTPClientConfig.xml"/>
+    <import resource="spring-task.xml"/>
+    
+   
+	<bean
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:db.properties</value>
+				<value>classpath:ftp.properties</value>
+				<value>classpath:applicationConfig.properties</value>
+				<value>classpath:monitor.properties</value>
+				<value>classpath:task.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	 <!-- 配置广告数据源 -->
+<!--	<bean id="adDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+	    <property name="driverClassName" value="${driverClassName}"/>
+	    <property name="url" value="${url}"/>
+	    <property name="username" value="${userName}"/>
+	    <property name="password" value="${password}"/>
+	    &lt;!&ndash;initialSize: 初始化连接&ndash;&gt;
+		<property name="initialSize" value="10"/>  
+		&lt;!&ndash;minIdle: 最小空闲连接&ndash;&gt;
+		<property name="minIdle" value="10"/>  
+		&lt;!&ndash;maxActive: 最大连接数量&ndash;&gt;
+		<property name="maxActive" value="50"/>
+		&lt;!&ndash;最大连接等待时间(ms)&ndash;&gt;
+		<property name="maxWait" value="1000"/>  
+		&lt;!&ndash;默认从连接池取连接时检测其可用性，放回连接池时不做监测&ndash;&gt;
+		<property name="validationQuery" value="SELECT 1" />
+        &lt;!&ndash; 配置监控统计拦截的filters &ndash;&gt;
+        <property name="filters" value="stat" /> 
+    </bean>-->
+	 <!-- 配置广告主库数据源 -->
+	<bean id="adMasterDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+	    <property name="driverClassName" value="${driverClassName}"/>
+	    <property name="url" value="${master.url}"/>
+	    <property name="username" value="${master.userName}"/>
+	    <property name="password" value="${master.password}"/>
+	    <!--initialSize: 初始化连接-->
+		<property name="initialSize" value="10"/>  
+		<!--minIdle: 最小空闲连接-->
+		<property name="minIdle" value="10"/>  
+		<!--maxActive: 最大连接数量-->
+		<property name="maxActive" value="50"/>
+		<!--最大连接等待时间(ms)-->
+		<property name="maxWait" value="1000"/>  
+		<!--默认从连接池取连接时检测其可用性，放回连接池时不做监测-->
+		<property name="validationQuery" value="SELECT 1" />
+        <!-- 配置监控统计拦截的filters -->
+        <property name="filters" value="stat" /> 
+    </bean>
+    
+     <!--动态数据源-->
+	<bean id="dynamicDataSource" class="com.voole.ad.utils.datasources.DynamicDataSource" scope="prototype">
+		<property name="targetDataSources">  
+			<map>
+				<!--<entry key="ad" value-ref="adDataSource"/>-->
+				<entry key="adMaster" value-ref="adMasterDataSource"/>
+			<!-- <entry key="t1" value-ref="tiepian1"/>
+				<entry key="t2" value-ref="tiepian2"/>
+				<entry key="t3" value-ref="tiepian3"/>  -->
+			</map>  
+		</property>  
+		<property name="defaultTargetDataSource" ref="adMasterDataSource" />
+	</bean>
+	
+	<!-- 配置SQLSessionFactory -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">     
+	   <property name="dataSource" ref="dynamicDataSource" />
+	   <property name="typeAliasesPackage" value="com.voole.ad.model" /> 
+	   <property name="configLocation" value="classpath:mybatisConfig.xml"/>
+	   <property name="mapperLocations"  
+              value="classpath:com/voole/ad/model/sqlxmls/*.xml" /> 
+	</bean>
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactory" />
+	</bean>
+	<bean id="appContextAware" class="com.voole.ad.utils.AppContextAware" />
+	<context:component-scan base-package="com.voole.ad" />
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+	
+	<!-- 加载applicationConfig.properties文件，获取属性文件的内容 -->
+	<bean id="propertyConfigurer" class="com.voole.ad.utils.GlobalProperties">
+		<property name="ignoreResourceNotFound" value="true" />
+		<property name="locations">
+			<list>
+				<value>classpath:db.properties</value>
+				<value>classpath:ftp.properties</value>
+				<value>classpath:applicationConfig.properties</value>
+				<value>classpath:monitor.properties</value>
+				<value>classpath:task.properties</value>
+			</list>
+		</property>
+	</bean>
+
+</beans>

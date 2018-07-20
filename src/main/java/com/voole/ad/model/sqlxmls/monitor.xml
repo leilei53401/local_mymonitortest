@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="monitor">
+    <!-- 加载监控模板 -->
+    <select id="loadMonitorInfo" resultType="AdSendInfo">
+    <![CDATA[
+        SELECT  o.org_name company, m.creativeid, m.send_url params, m.send_paras replaceParams
+                FROM monitor_url m,monitor_org o
+        WHERE m.org_id = o.org_id
+        AND m.send_type=1 AND m.STATUS=1
+            ]]>
+	</select>
+</mapper>

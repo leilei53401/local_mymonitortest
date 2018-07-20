@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-3.2.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd">
+
+	 <!-- 定时刷新监测模板缓存启动类 -->
+    <bean name="refreshJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="AdMonitorTaskService" />
+        <property name="targetMethod" value="refreshCache" />
+        <property name="concurrent" value="false" />
+    </bean>
+   
+    <bean id="refreshTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="refreshJob" />
+		<property name="cronExpression" value="${refreshCron}" />
+	</bean>
+	
+     <!-- 定时下载文件任务 -->
+    <bean name="downloadFileJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="StartDownLoadJob" />
+        <property name="targetMethod" value="start" />
+        <property name="concurrent" value="false" />
+    </bean>
+   
+    <bean id="downloadFileTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="downloadFileJob" />
+		<property name="cronExpression" value="${downloadCron}" />
+	</bean>
+	
+	 <!-- 定时解析本地文件任务 -->
+	 <bean name="startLocalFileJob" class="com.voole.ad.main.StartLocalFileJob">
+        <property name="localPath" value="${local.localPath}" />
+        <property name="backupPath" value="${local.backupPath}" />
+    <!-- <property name="localPath" value="E:\\opt\\SupersspMonitorAgent\\file\\/" />
+        <property name="backupPath" value="E:\\opt\\SupersspMonitorAgent\\backup\\" />  -->
+        <property name="maxProcessfiles" value="10" />
+    </bean>
+    
+    
+    <bean name="parseFileJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="startLocalFileJob" />
+        <property name="targetMethod" value="start" />
+        <property name="concurrent" value="false" />
+    </bean>
+   
+    <bean id="parseFileTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="parseFileJob" />
+		<property name="cronExpression" value="${localParseCron}" />
+	</bean>
+
+
+    <!--补发广汽菲克数-->
+
+
+    <bean name="startGqfkFileJob" class="com.voole.ad.main.StarSendFileJob">
+        <property name="sendType" value="1" />
+    </bean>
+
+
+    <bean name="parseGqfkFileJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="startGqfkFileJob" />
+        <property name="targetMethod" value="start" />
+        <property name="concurrent" value="false" />
+    </bean>
+
+
+    <bean id="parseGqfkFileTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="parseGqfkFileJob" />
+        <property name="cronExpression" value="30 25 16 * * ?" />
+    </bean>
+
+
+
+    <!-- 定时解析本地文件任务测试 -->
+    <bean name="sendLocalFileJob" class="com.voole.ad.main.LocalSendFileJob">
+    </bean>
+
+
+    <bean name="localFileJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="sendLocalFileJob" />
+        <property name="targetMethod" value="start" />
+        <property name="concurrent" value="false" />
+    </bean>
+
+
+    <bean id="localFileTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="localFileJob" />
+        <property name="cronExpression" value="0 9 17 * * ?" />
+    </bean>
+
+
+    <!-- 启动调度器 -->
+    <bean id="refreshScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+            	<!-- 定时刷新监测模板缓存 -->
+               <!-- <ref bean="refreshTrigger" />-->
+                <!-- 下载任务 -->
+               <!-- <ref bean="downloadFileTrigger" />-->
+                 <!-- 解析任务 -->
+               <!-- <ref bean="parseFileTrigger" />-->
+
+                <!--<ref bean="parseGqfkFileTrigger" />-->
+
+                <ref bean="localFileTrigger" />
+
+            </list>
+        </property>
+    </bean>
+    
+
+</beans>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 下载文件信息 -->
+<mapper namespace="monitorfile"> 
+	
+	<!-- 加载监控模板 -->
+	<select id="getFiles"   resultType="MonFileInfo">
+		SELECT t.`id`,t.`fname`,t.`fsize`,t.`fpath`,t.`fhost`,t.`status` FROM ad_stat_recordfile  t WHERE t.`status` = 0 LIMIT 10
+	</select>
+	
+	<!-- 修改状态为正在下载 -->
+	<update id="updateFilesToDownLoading" parameterType="string" >
+		 update ad_stat_recordfile set status = 1  WHERE id in
+		   <foreach item="item" collection="list"
+		      open="(" separator="," close=")">
+		        #{item}
+		  </foreach>
+	</update>
+	
+	<!-- 修改状态为解析异常  by filenames -->
+	<update id="updateFilesDownException" parameterType="string" >
+		 update ad_stat_recordfile set status = 4
+		  WHERE fname in
+		   <foreach item="item" collection="list"
+		      open="(" separator="," close=")">
+		        #{item}
+		  </foreach>
+	</update>
+	
+	<!-- 修改状态为解析完成 by filenames -->
+	<update id="updateFilesToParsed" parameterType="string" >
+		 update ad_stat_recordfile set status = 2
+		  WHERE fname in
+		   <foreach item="item" collection="list"
+		      open="(" separator="," close=")">
+		        #{item}
+		  </foreach>
+	</update>
+	
+	<!-- 修改状态为解析异常  by filenames -->
+	<update id="updateFilesToException" parameterType="string" >
+		 update ad_stat_recordfile set status = 3
+		  WHERE fname in
+		   <foreach item="item" collection="list"
+		      open="(" separator="," close=")">
+		        #{item}
+		  </foreach>
+	</update>
+	
+	<!-- 将文件复制到 历史表中 -->
+	<insert id="copyFilesToHistory" parameterType="string" >
+		insert into ad_stat_recordfile_history 
+		select * from  ad_stat_recordfile WHERE  fname in
+		   <foreach item="item" collection="list"
+		      open="(" separator="," close=")">
+		        #{item}
+		  </foreach>
+	</insert>
+	<!-- 删除复制完成的文件 -->
+	<delete id="delOldFiles" parameterType="string" >
+   			delete from ad_stat_recordfile where fname in 
+   			<foreach item="item" collection="list" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+   	</delete>
+	
+</mapper>
